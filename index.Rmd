@@ -3,22 +3,129 @@ title: "SQL"
 output: html_document
 ---
 
-# This is a first-level header
-## This is a second-level header
-### This is a third-level header
+#Filtering Columns and Rows
+By installing Lahman and sqldf you can filter columns and rows with information from different data sets. It is useful for organization. 
+```{r warning=FALSE, message=FALSE}
+library(Lahman)
+library(sqldf)
+```
 
-* item 1
-* item 2
-* item 3
-* item 4
+```{r}
+query<- "SELECT playerID, yearID, teamID, HR
+FROM Batting 
+WHERE teamID='NYA' AND yearID=1927"
+sqldf(query)
+```
 
-For a paragraph, type normally.
+```{r}
+query<- "SELECT playerID, yearID, teamID, HR
+FROM Batting
+WHERE HR>=40 and teamID='NYA'"
+sqldf(query)
+```
 
-Team | League
----|---
-Phillies | National 
-Yankees | Amerian
-Cubs | National
-Red Socks | American
+```{r}
+query<- "SELECT playerID, teamID, HR, SO, yearID
+FROM Batting 
+WHERE HR>40 and SO<60"
+sqldf(query)
+```
 
-<img src="webpic.jpg" width="300" />
+```{r}
+query<- "SELECT teamID, yearID, playerID, HR
+FROM Batting
+WHERE teamID='PHI' and yearID >=1970 and yearID <1980 and HR>30"
+sqldf(query)
+```
+
+# Order By
+By using the Order By function, you can take the information you retrieved from the dataset and organize them by their individual rows.
+
+```{r}
+query<- "SELECT playerID, HR, teamID, yearID
+FROM Batting 
+WHERE HR>50 
+ORDER BY HR DESC"
+sqldf(query)
+```
+
+```{r}
+query<- "SELECT playerID, teamID, yearID, HR, SO, AB
+FROM Batting
+WHERE SO<10 and AB>=400
+ORDER BY SO"
+sqldf(query)
+```
+
+#AGGREGATION 
+Aggregation is producing the minimum amount of output.
+
+```{r}
+query<- "SELECT playerID, sum(HR) 
+FROM Batting
+GROUP BY playerID
+HAVING sum(HR)>=600
+ORDER BY sum(HR) DESC"
+sqldf(query)
+```
+
+```{r}
+query<- "SELECT playerID, avg(HR)
+FROM Batting
+GROUP BY playerID
+HAVING avg(HR)>30
+ORDER BY avg(HR) DESC"
+sqldf(query)
+```
+
+# JOINS
+You can tables from multiple data tables using joins
+
+```{r}
+query<- "SELECT nameFirst, nameLast, teamID, yearID, HR
+FROM Batting INNER JOIN Master
+ON Batting.playerID=Master.playerID
+WHERE Batting.playerID='ruthba01'"
+sqldf(query)
+```
+
+```{r}
+query<- "SELECT nameFirst, nameLast, teamID, yearID, HR
+FROM Batting INNER JOIN Master
+ON Batting.playerID=Master.playerID
+WHERE HR>50
+ORDER BY HR DESC"
+sqldf(query)
+```
+
+```{r}
+query<- "SELECT playerID, name, Batting.yearID, Batting.HR
+FROM Batting INNER JOIN Teams
+ON Batting.teamID=Teams.teamID and Batting.yearID=Teams.yearID
+WHERE playerID='ruthba01'"
+sqldf(query)
+```
+
+```{r}
+query<-"SELECT nameFirst,nameLast,sum(HR)
+FROM Batting INNER JOIN Master
+ON Batting.playerID=Master.playerID
+GROUP BY Batting.playerID
+HAVING sum(HR)>=600
+ORDER BY sum(HR) DESC"
+
+sqldf(query)
+```
+
+```{r}
+query<-"SELECT nameFirst,nameLast,avg(salary)
+FROM Salaries INNER JOIN Master
+ON Salaries.playerID=Master.playerID
+WHERE nameFirst='Bob'
+GROUP BY Salaries.playerID
+HAVING avg(salary)>1000000
+ORDER BY avg(salary) DESC"
+
+sqldf(query)
+```
+
